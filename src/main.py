@@ -6,6 +6,7 @@ import wandb
 import torch
 import torch.optim as optim
 import torch.nn as nn
+from tqdm import tqdm
 
 
 
@@ -28,10 +29,9 @@ def train(model, train_loader, test_loader, epochs, lr, beta, device):
     optimizer = optim.Adam(model.parameters(), lr=lr)
     criterion = nn.MSELoss(reduction='sum').to(device)
 
-    for epoch in range(epochs):
+    for epoch in tqdm(range(epochs)):
         model.train()
-        loop = tqdm(enumerate(train_loader), total=len(train_loader), leave=False)
-        for idx, batch in loop:
+        for idx, batch in enumerate(train_loader):
             img = batch['image'].to(device)
             
             reconstruction, mu, log_var = model(img)
