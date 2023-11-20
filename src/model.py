@@ -73,7 +73,6 @@ class vae(nn.Module):
 
     def encoder(self, x):
         x = self.encoder_conv(x)
-        print(x.shape)
         x = torch.flatten(x, 1)
         return self.encoder_mu(x), self.encoder_var(x)
         
@@ -85,7 +84,6 @@ class vae(nn.Module):
         z = mu + eps * std
 
         z = self.decoder(z)
-        print(z.shape)
         z = z.view(-1, self.filter_size[4], 8 , 8)
         z = self.decoder_conv(z)
 
