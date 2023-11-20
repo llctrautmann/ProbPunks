@@ -36,8 +36,8 @@ class vae(nn.Module):
             nn.Linear(self.lantent_dim, 2048),
             nn.BatchNorm1d(2048),
             nn.LeakyReLU(0.02),
-            nn.Linear(2048, 512 * self.im_width // 2 ** (len(self.filter_size) -5)  * self.im_height // 2 ** (len(self.filter_size) -5)),
-            nn.BatchNorm1d(512 * self.im_width // 2 ** (len(self.filter_size) -5)  * self.im_height // 2 ** (len(self.filter_size) -5)),
+            nn.Linear(2048, 512 * self.im_width // 2 ** (len(self.filter_size) -3)  * self.im_height // 2 ** (len(self.filter_size) -3)),
+            nn.BatchNorm1d(512 * self.im_width // 2 ** (len(self.filter_size) -3)  * self.im_height // 2 ** (len(self.filter_size) -3)),
             nn.LeakyReLU(0.02),
         )
 
