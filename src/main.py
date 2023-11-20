@@ -90,5 +90,5 @@ if __name__ == "__main__":
         epochs=hp.epochs,
         lr=hp.learning_rate,
         beta=hp.beta,
-        device="mps")
+        device=hp.device)
     
