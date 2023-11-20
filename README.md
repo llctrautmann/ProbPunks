@@ -4,27 +4,28 @@ Simple VAE design to make Probabilistic Cryptopunks with a convolutional VAE.
 
 <!-- ![Image1](data/images/ProbPunks_1.png) -->
 
-## Example 1
+# Gallary
+## Batch 44
 <p align="center">
   <img width="720" height="90" src="data/images/ProbPunks_1.png">
 </p>
 
-## Example 2
+## Batch 128
 <p align="center">
   <img width="720" height="90" src="data/images/ProbPunks_2.png">
 </p>
 
-## Example 3
+## Batch 165
 <p align="center">
   <img width="720" height="90" src="data/images/ProbPunks_3.png">
 </p>
 
-## Example 4
+## Batch 451
 <p align="center">
   <img width="720" height="90" src="data/images/ProbPunks_4.png">
 </p>
 
-## Example 5
+## Batch 666
 <p align="center">
   <img width="720" height="90" src="data/images/ProbPunks_5.png">
 </p>
