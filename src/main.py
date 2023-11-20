@@ -5,7 +5,7 @@ from data import train_loader, test_loader
 import wandb
 
 
-def train(model, train_loader, test_loader, epochs, lr, beta, optimizer, criterion, device, writer):
+def train(model, train_loader, test_loader, epochs, lr, beta, device, writer):
     wandb.init(project="nft-vae"
     , config={
         "learning_rate": lr,
@@ -86,10 +86,8 @@ if __name__ == "__main__":
         train_loader=train_loader,
         test_loader=test_loader,
         epochs=hp.epochs,
-        lr=hp.learning_rate,
+        lr=hp.learning_ratesrc,
         beta=hp.beta,
         device=hp.device,
-        optimizer=optimizer,
-        criterion=criterion,
         writer=writer)
     
