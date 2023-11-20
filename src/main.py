@@ -3,6 +3,10 @@ from model import vae
 from utils import save_images_to_tensorboard, log_to_wandb
 from data import train_loader, test_loader
 import wandb
+import torch
+import torch.optim as optim
+import torch.nn as nn
+
 
 
 def train(model, train_loader, test_loader, epochs, lr, beta, device):
@@ -23,7 +27,6 @@ def train(model, train_loader, test_loader, epochs, lr, beta, device):
     model = vae(im_width=256, im_height=256).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     criterion = nn.MSELoss(reduction='sum').to(device)
-    writer = SummaryWriter()
 
     for epoch in range(epochs):
         model.train()
