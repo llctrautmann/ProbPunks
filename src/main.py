@@ -44,7 +44,6 @@ def train(model, train_loader, test_loader, epochs, lr, beta, device):
 
             # Total loss
             total_loss = reconstruction_loss + beta *  kl_divergence
-            print(f"Epoch: {epoch} Loss: {total_loss.item()}")
 
             # Backprop
             optimizer.zero_grad()
