@@ -86,7 +86,7 @@ if __name__ == "__main__":
         train_loader=train_loader,
         test_loader=test_loader,
         epochs=hp.epochs,
-        lr=hp.lr,
+        lr=hp.learning_rate,
         beta=hp.beta,
         device=hp.device,
         optimizer=optimizer,
