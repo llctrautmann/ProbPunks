@@ -11,6 +11,8 @@ from tqdm import tqdm
 
 
 def train(model, train_loader, test_loader, epochs, lr, beta, device):
+    # Initialize wandb
+    print(f"Initializing training on {device}.")
     wandb.init(project="nft-vae"
     , config={
         "learning_rate": lr,
