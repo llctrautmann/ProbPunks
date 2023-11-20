@@ -66,7 +66,6 @@ class vae(nn.Module):
 
     def encoder(self, x):
         x = self.encoder_conv(x)
-        print(x.shape)
         x = torch.flatten(x, 1)
         return self.encoder_mu(x), self.encoder_var(x)
         
