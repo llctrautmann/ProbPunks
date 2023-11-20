@@ -13,11 +13,11 @@ class vae(nn.Module):
         self.im_height = im_height
 
         self.encoder_conv = nn.Sequential(
-            self.conv_block(3, self.filter_size[0], (5,5), 1, 'same'),
-            self.conv_block(self.filter_size[0], self.filter_size[1], (5,5), 1, 'same'),
-            self.conv_block(self.filter_size[1], self.filter_size[2], (5,5), 1, 'same'),
-            self.conv_block(self.filter_size[2], self.filter_size[3], (5,5), 1, 'same'),
-            self.conv_block(self.filter_size[3], self.filter_size[4], (5,5), 1, 'same'),
+            self.conv_block(3, self.filter_size[0], (5,5), 1, 'same'), # 128 -> 64
+            self.conv_block(self.filter_size[0], self.filter_size[1], (5,5), 1, 'same'), # 64 -> 32
+            self.conv_block(self.filter_size[1], self.filter_size[2], (5,5), 1, 'same'), # 32 -> 16
+            self.conv_block(self.filter_size[2], self.filter_size[3], (5,5), 1, 'same'), # 16 -> 8
+            self.conv_block(self.filter_size[3], self.filter_size[4], (5,5), 1, 'same'), # 8 -> 8
         )
 
         self.encoder_mu = nn.Sequential(
@@ -38,11 +38,11 @@ class vae(nn.Module):
         )
 
         self.decoder_conv = nn.Sequential(
-            self.deconv_block(self.filter_size[4], self.filter_size[3], (5,5), 1),
-            self.deconv_block(self.filter_size[3], self.filter_size[2], (5,5), 2),
+            self.deconv_block(self.filter_size[4], self.filter_size[3], (5,5), stride=1),
+            self.deconv_block(self.filter_size[3], self.filter_size[2], (5,5), stride=2),
             self.deconv_block(self.filter_size[2], self.filter_size[1], (5,5), 2),
             self.deconv_block(self.filter_size[1], self.filter_size[0], (5,5), 2),
-            self.deconv_block(self.filter_size[0], 3, (5,5), 1),
+            self.deconv_block(self.filter_size[0], 3, (5,5), 2),
         )
 
 
@@ -55,7 +55,7 @@ class vae(nn.Module):
             nn.LeakyReLU(0.02)
         )
 
-    def deconv_block(self, in_channels, out_channels, kernel_size, stride,padding=1):
+    def deconv_block(self, in_channels, out_channels, kernel_size, stride,padding=2):
         output_padding = 1 if stride == 2 else 0
         return nn.Sequential(
             nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride, padding, output_padding),
@@ -66,6 +66,7 @@ class vae(nn.Module):
 
     def encoder(self, x):
         x = self.encoder_conv(x)
+        print(x.shape)
         x = torch.flatten(x, 1)
         return self.encoder_mu(x), self.encoder_var(x)
         
@@ -77,8 +78,19 @@ class vae(nn.Module):
         z = mu + eps * std
 
         z = self.decoder(z)
-        z = z.view(-1, self.filter_size[4], 8, 8)
+        z = z.view(-1, self.filter_size[4], 8 , 8)
         z = self.decoder_conv(z)
 
         return z, mu, log_var
+
+
+# Dimensionality test
+
+if __name__ == '__main__':
+    model = vae(128, 128)
+    x = torch.randn(64, 3, 128, 128)
+    z, mu, log_var = model(x)
+    print(z.shape)
+    print(mu.shape)
+    print(log_var.shape)
 
