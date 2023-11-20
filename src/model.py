@@ -30,7 +30,8 @@ class vae(nn.Module):
 
         self.encoder_var = nn.Sequential(
             nn.Linear(in_features=512 * self.im_width // 2 ** (len(self.filter_size) -5)  * self.im_width // 2 ** (len(self.filter_size) -5), out_features=1024),
-            nn.Linear(1024, self.lantent_dim))
+            nn.Linear(1024, self.lantent_dim),
+            nn.LogSoftmax(dim=1))
 
         self.decoder = nn.Sequential(
             nn.Linear(self.lantent_dim, 1024),
