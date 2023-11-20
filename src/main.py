@@ -24,10 +24,8 @@ def train(model, train_loader, test_loader, epochs, lr, beta, device):
         "im_height": hp.im_height,
     })
 
-
-
     # Initialize model, optimizer, and loss function, hyperparameters
-    model = vae(im_width=256, im_height=256).to(device)
+    model = vae(im_width=64, im_height=64).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     criterion = nn.MSELoss(reduction='sum').to(device)
 
@@ -69,9 +67,9 @@ def train(model, train_loader, test_loader, epochs, lr, beta, device):
                 total_val_loss = reconstruction_loss + beta *  kl_divergence
 
             # Log to wandb
-            z = torch.randn(16, model.lantent_dim).to(device)
+            z = torch.randn(64, model.lantent_dim).to(device)
             z = model.decoder(z)
-            z = z.view(16, 1024, 4, 4)
+            z = z.view(-1, 512, 4, 4)
             z = model.decoder_conv(z)
 
             log_to_wandb(train_loss=total_loss,
@@ -92,5 +90,5 @@ if __name__ == "__main__":
         epochs=hp.epochs,
         lr=hp.learning_rate,
         beta=hp.beta,
-        device=hp.device)
+        device="mps")
     

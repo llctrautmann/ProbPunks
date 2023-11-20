@@ -12,7 +12,7 @@ def collate_fn(batch):
 
     # Convert images to PyTorch tensors
     transform = transforms.Compose([
-        transforms.Resize((256, 256)),
+        transforms.Resize((64, 64)),
         transforms.ToTensor()
     ])
     images = [transform(img) if isinstance(img, Image.Image) else transform(Image.fromarray(img)) for img in images]
