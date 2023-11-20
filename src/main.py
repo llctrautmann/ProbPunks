@@ -25,7 +25,7 @@ def train(model, train_loader, test_loader, epochs, lr, beta, device):
     })
 
     # Initialize model, optimizer, and loss function, hyperparameters
-    model = vae(im_width=64, im_height=64).to(device)
+    model = vae(im_width=128, im_height=128).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     criterion = nn.MSELoss(reduction='sum').to(device)
 

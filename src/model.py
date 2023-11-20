@@ -31,10 +31,10 @@ class vae(nn.Module):
         self.decoder = nn.Sequential(
             nn.Linear(self.lantent_dim, 1024),
             nn.BatchNorm1d(1024),
-            nn.ReLU(),
+            nn.LeakyReLU(0.02),
             nn.Linear(1024, 512 * self.im_width // 2 ** (len(self.filter_size) -1)  * self.im_height // 2 ** (len(self.filter_size) -1)),
             nn.BatchNorm1d(512 * self.im_width // 2 ** (len(self.filter_size) -1)  * self.im_height // 2 ** (len(self.filter_size) -1)),
-            nn.ReLU(),
+            nn.LeakyReLU(0.02),
         )
 
         self.decoder_conv = nn.Sequential(
@@ -77,9 +77,7 @@ class vae(nn.Module):
         z = mu + eps * std
 
         z = self.decoder(z)
-        z = z.view(-1, self.filter_size[4], 4, 4)
-
-
+        z = z.view(-1, self.filter_size[4], 8, 8)
         z = self.decoder_conv(z)
 
         return z, mu, log_var

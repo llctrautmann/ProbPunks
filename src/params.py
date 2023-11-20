@@ -10,8 +10,8 @@ class Params:
     epochs: int = 500
     batch_size: int = 64
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
-    im_width: int = 64
-    im_height: int = 64
+    im_width: int = 128
+    im_height: int = 128
 
 
 hp = Params()
