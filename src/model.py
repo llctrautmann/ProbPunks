@@ -7,7 +7,7 @@ import numpy as np
 class vae(nn.Module):
     def __init__(self,im_width, im_height, filter_size=[32, 64, 128, 256, 512], lantent_dim=512):
         super(vae, self).__init__()
-        self.filter_size = [32, 64, 128, 256, 512]
+        self.filter_size = [32, 64, 128, 256, 512, 1024, 2048, 1024, 512]
         self.lantent_dim = 512
         self.im_width = im_width
         self.im_height = im_height
@@ -18,26 +18,34 @@ class vae(nn.Module):
             self.conv_block(self.filter_size[1], self.filter_size[2], (5,5), 1, 'same'), # 32 -> 16
             self.conv_block(self.filter_size[2], self.filter_size[3], (5,5), 1, 'same'), # 16 -> 8
             self.conv_block(self.filter_size[3], self.filter_size[4], (5,5), 1, 'same'), # 8 -> 8
+            self.conv_block(self.filter_size[4], self.filter_size[5], (5,5), 1, 'same'), # 8 -> 8
+            self.conv_block(self.filter_size[5], self.filter_size[6], (5,5), 1, 'same'), # 8 -> 8
+            self.conv_block(self.filter_size[6], self.filter_size[7], (5,5), 1, 'same'), # 8 -> 8
+            self.conv_block(self.filter_size[7], self.filter_size[8], (5,5), 1, 'same'), # 8 -> 8
         )
 
         self.encoder_mu = nn.Sequential(
-            nn.Linear(in_features=512 * self.im_width // 2 ** (len(self.filter_size) -1)  * self.im_width // 2 ** (len(self.filter_size) -1), out_features=1024),
+            nn.Linear(in_features=512 * self.im_width // 2 ** (len(self.filter_size) -5)  * self.im_width // 2 ** (len(self.filter_size) -5), out_features=1024),
             nn.Linear(1024, self.lantent_dim))
 
         self.encoder_var = nn.Sequential(
-            nn.Linear(in_features=512 * self.im_width // 2 ** (len(self.filter_size) -1)  * self.im_width // 2 ** (len(self.filter_size) -1), out_features=1024),
+            nn.Linear(in_features=512 * self.im_width // 2 ** (len(self.filter_size) -5)  * self.im_width // 2 ** (len(self.filter_size) -5), out_features=1024),
             nn.Linear(1024, self.lantent_dim))
 
         self.decoder = nn.Sequential(
             nn.Linear(self.lantent_dim, 1024),
             nn.BatchNorm1d(1024),
             nn.LeakyReLU(0.02),
-            nn.Linear(1024, 512 * self.im_width // 2 ** (len(self.filter_size) -1)  * self.im_height // 2 ** (len(self.filter_size) -1)),
-            nn.BatchNorm1d(512 * self.im_width // 2 ** (len(self.filter_size) -1)  * self.im_height // 2 ** (len(self.filter_size) -1)),
+            nn.Linear(1024, 512 * self.im_width // 2 ** (len(self.filter_size) -5)  * self.im_height // 2 ** (len(self.filter_size) -5)),
+            nn.BatchNorm1d(512 * self.im_width // 2 ** (len(self.filter_size) -5)  * self.im_height // 2 ** (len(self.filter_size) -5)),
             nn.LeakyReLU(0.02),
         )
 
         self.decoder_conv = nn.Sequential(
+            self.deconv_block(self.filter_size[8], self.filter_size[7], (5,5), stride=1),
+            self.deconv_block(self.filter_size[7], self.filter_size[6], (5,5), stride=1),
+            self.deconv_block(self.filter_size[6], self.filter_size[5], (5,5), stride=1),
+            self.deconv_block(self.filter_size[5], self.filter_size[4], (5,5), stride=1),
             self.deconv_block(self.filter_size[4], self.filter_size[3], (5,5), stride=1),
             self.deconv_block(self.filter_size[3], self.filter_size[2], (5,5), stride=2),
             self.deconv_block(self.filter_size[2], self.filter_size[1], (5,5), 2),
@@ -46,11 +54,10 @@ class vae(nn.Module):
         )
 
 
-
     def conv_block(self, in_channels, out_channels, kernel_size, stride, padding):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding),
-            nn.MaxPool2d(2, 2) if out_channels != 512 else nn.Identity(),
+            nn.MaxPool2d(2, 2) if out_channels < 512 else nn.Identity(),
             nn.BatchNorm2d(out_channels),
             nn.LeakyReLU(0.02)
         )
@@ -66,6 +73,7 @@ class vae(nn.Module):
 
     def encoder(self, x):
         x = self.encoder_conv(x)
+        print(x.shape)
         x = torch.flatten(x, 1)
         return self.encoder_mu(x), self.encoder_var(x)
         
@@ -77,6 +85,7 @@ class vae(nn.Module):
         z = mu + eps * std
 
         z = self.decoder(z)
+        print(z.shape)
         z = z.view(-1, self.filter_size[4], 8 , 8)
         z = self.decoder_conv(z)
 
