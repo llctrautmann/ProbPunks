@@ -82,7 +82,7 @@ class vae(nn.Module):
         z = mu + eps * std
 
         z = self.decoder(z)
-        z = z.view(-1, self.filter_size[4], 8 , 8)
+        z = z.view(-1, self.filter_size[-1], 8 , 8)
         z = self.decoder_conv(z)
 
         return z, mu, log_var
