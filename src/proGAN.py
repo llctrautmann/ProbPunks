@@ -13,28 +13,7 @@ from torchvision.utils import save_image
 from scipy.stats import truncnorm
 from tqdm import tqdm
 import os
-
-WEATHER_CONDITIONS = [
-    'sunny', 'cloudy', 'rainy', 'snowy', 'windy', 'stormy', 'foggy', 'hail', 
-    'thunderstorm', 'tornado', 'hurricane', 'blizzard', 'drizzle', 'sleet', 
-    'dust storm'
-]
-COLOURS = [
-    'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'black', 'white', 
-    'pink', 'brown', 'grey', 'violet', 'indigo', 'turquoise', 'gold'
-]
-
-RUN_NAME = f'{WEATHER_CONDITIONS[np.random.randint(0,14)]}-{COLOURS[np.random.randint(0,14)]}'
-
-print(f'Run name: {RUN_NAME}')
-
-if not os.path.exists('../runs/ProGAN/checkpoints'):
-    print('Creating Checkpoint Directory')
-    os.makedirs('../runs/ProGAN/checkpoints')
-
-os.makedirs(f'../data/runs/ProGAN/{RUN_NAME}/log', exist_ok=True)
-os.makedirs(f'../data/runs/ProGAN/{RUN_NAME}/fake', exist_ok=True)
-os.makedirs(f'../data/runs/ProGAN/{RUN_NAME}/real', exist_ok=True)
+import sys
 
 # Model
 
@@ -184,7 +163,8 @@ DATASET = 'cryptopunks'
 CHECKPOINT_GEN = '../runs/ProGAN/checkpoints/generator.pth'
 CHECKPOINT_DIS = '../runs/ProGAN/checkpoints/discriminator.pth'
 
-DEVICE = device = 'mps' if torch.backends.mps.is_available() else 'cpu'
+DEVICE = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
+    
 SAVE_MODEL = False
 LOAD_MODEL = False
 LEARNING_RATE = 3e-4
@@ -197,11 +177,8 @@ LAMBDA_GP = 10
 
 PROGRESSIVE_EPOCHS = [50] * len(BATCH_SIZE)
 FIXED_NOISE = torch.randn(8, Z_DIM, 1, 1).to(DEVICE)
-NUM_WORKERS = 4
+NUM_WORKERS = 1
 
-# Tensorboard
-writer_fake = SummaryWriter(f'../data/runs/ProGAN/{RUN_NAME}/fake')
-writer_real = SummaryWriter(f'../data/runs/ProGAN/{RUN_NAME}/real')
 
 def plot_to_tensorboard(writer, loss_critic, loss_gen,real,fake, tb_step, run_name):
     writer.add_scalar(f'loss_critic', loss_critic, tb_step)
@@ -282,7 +259,7 @@ def get_loader(image_size):
     batch_size = BATCH_SIZE[int(log2(image_size / 4))]
 
     print(batch_size,)
-    dataset = datasets.ImageFolder(root='../data/cryptopunks/',transform=transform)
+    dataset = datasets.ImageFolder(root='./data/cryptopunks/',transform=transform)
 
     loader = DataLoader(dataset, batch_size=batch_size,shuffle=True, num_workers=NUM_WORKERS,pin_memory=True)
 
@@ -298,14 +275,15 @@ def train(critic,
             opt_critic,
             opt_gen,
             tensorboard_step,
-            writer
+            writer,
+            run_name
             ):
     loop = tqdm(loader, leave=True)
     for idx, (real, _) in enumerate(loop):
-        real = real.to(device)
+        real = real.to(DEVICE)
         cur_batch_size = real.shape[0]
 
-        noise = torch.randn(cur_batch_size, Z_DIM, 1, 1, device=device)
+        noise = torch.randn(cur_batch_size, Z_DIM, 1, 1, device=DEVICE)
 
         fake = gen(noise, alpha, step)
         critic_real = critic(real,alpha,step)
@@ -342,7 +320,7 @@ def train(critic,
                                 real.detach(),
                                 fixed_fakes.detach(),
                                 tb_step=tensorboard_step,
-                                run_name=RUN_NAME)
+                                run_name=run_name)
             
             tensorboard_step += 1
 
@@ -351,14 +329,18 @@ def train(critic,
 
 
 
-def main(identifier='',load_gen='', load_cri=''):
+def main(identifier='',load_gen='', load_cri='',run_name=''):
     gen = Generator(z_dim=Z_DIM, in_channels=IN_CHANNELS, img_channels=CHANNELS).to(DEVICE)
     critic = Discriminator(in_channels=IN_CHANNELS, img_channels=CHANNELS).to(DEVICE)
 
     opt_gen = optim.Adam(gen.parameters(), lr=LEARNING_RATE,betas=(0.0,0.99))
     opt_critic = optim.Adam(critic.parameters(), lr=LEARNING_RATE,betas=(0.0,0.99))
 
-    writer = SummaryWriter(f'../data/runs/ProGAN/{RUN_NAME}/log')
+
+    # Tensorboard
+    writer_fake = SummaryWriter(f'./data/runs/ProGAN/{run_name}/fake')
+    writer_real = SummaryWriter(f'./data/runs/ProGAN/{run_name}/real')
+    writer = SummaryWriter(f'./data/runs/ProGAN/{run_name}/log')
 
     if LOAD_MODEL:
         load_checkpoint(
@@ -393,7 +375,8 @@ def main(identifier='',load_gen='', load_cri=''):
                 opt_critic,
                 opt_gen,
                 tensorboard_step,
-                writer
+                writer,
+                run_name
             )
 
             if SAVE_MODEL:
@@ -404,4 +387,6 @@ def main(identifier='',load_gen='', load_cri=''):
 
 
 if __name__ == "__main__":
-    main(load_gen='',load_cri='')
+    output_from_bash = sys.argv[1]
+    print(f"Run tag: {output_from_bash}")
+    main(load_gen='',load_cri='', run_name=output_from_bash)
